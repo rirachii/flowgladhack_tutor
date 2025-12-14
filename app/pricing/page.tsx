@@ -2,7 +2,6 @@
 import { useBilling } from '@flowglad/nextjs';
 import { useState } from 'react';
 import Link from 'next/link';
-import { DebugSubscription } from '@/components/DebugSubscription';
 
 import { cancelSubscriptionAction } from './actions';
 
@@ -54,7 +53,6 @@ export default function PricingPage() {
 
     return (
         <div className="min-h-screen bg-white">
-            <DebugSubscription />
             <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 <div className="mb-8">
                     <Link href="/dashboard" className="text-sm font-semibold text-gray-600 hover:text-gray-900 flex items-center gap-2">
