@@ -22,6 +22,7 @@ export interface Module {
   description: string;
   topic: string;
   difficulty: Difficulty;
+  language: string;
   estimated_duration_mins: number;
   thumbnail_url: string | null;
   is_published: boolean;
@@ -35,6 +36,7 @@ export interface Section {
   title: string;
   content: string;
   order_index: number;
+  audio_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -96,6 +98,21 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 export type QuestionInputType = 'text' | 'voice' | 'multiple_choice';
 
 export type ProgressStatus = 'in_progress' | 'completed';
+
+// ============================================
+// Evaluation Types
+// ============================================
+
+export interface QuizEvaluationRequest {
+  quiz_id: string
+  answers: Array<{ question_id: string; user_response: string }>
+}
+
+export interface QuizEvaluationResponse {
+  score: number
+  feedback: string
+  answers: QuizAnswer[]
+}
 
 // ============================================
 // Insert Types (for creating new records)
