@@ -1,5 +1,6 @@
 'use server'
 
+import { getRedirectPath } from '@/utils/redirect'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
@@ -27,7 +28,7 @@ export async function authWithEmailPassword(formData: FormData) {
       // If we have a session, great, logged in (auto-confirm enabled or similar)
       if (signUpData.session) {
           revalidatePath('/', 'layout')
-          redirect('/pricing')
+          redirect(await getRedirectPath())
       }
 
       // If no session, it could be:
@@ -54,7 +55,7 @@ export async function authWithEmailPassword(formData: FormData) {
       // Sign In succeeded! It was Case B (Existing User).
       if (signInData.session) {
           revalidatePath('/', 'layout')
-          redirect('/pricing')
+          redirect(await getRedirectPath())
       }
       
       // Fallback
@@ -77,7 +78,7 @@ export async function authWithEmailPassword(formData: FormData) {
       }
 
       revalidatePath('/', 'layout')
-      redirect('/pricing')
+      redirect(await getRedirectPath())
   }
 
   // 5. Some other error during Sign Up
