@@ -2,6 +2,8 @@
 import { useBilling } from '@flowglad/nextjs';
 import { useState } from 'react';
 
+import { cancelSubscriptionAction } from './actions';
+
 export default function PricingPage() {
     const { createCheckoutSession, currentSubscription, loaded } = useBilling();
     const [submitting, setSubmitting] = useState(false);
@@ -27,6 +29,25 @@ export default function PricingPage() {
         }
     };
 
+    const handleDowngrade = async () => {
+        if (!currentSubscription || !confirm('Are you sure you want to cancel your Pro subscription? You will lose access to premium features at the end of your billing cycle.')) return;
+        
+        setSubmitting(true);
+        try {
+            const result = await cancelSubscriptionAction(currentSubscription.id);
+            if (result.error) {
+                alert(result.error);
+            } else {
+                window.location.reload(); // Refresh to reflect status change
+            }
+        } catch (e) {
+            console.error('Downgrade error:', e);
+            alert('Failed to process downgrade');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const isLoading = !loaded || submitting;
 
     return (
@@ -47,13 +68,15 @@ export default function PricingPage() {
                             <li className="flex items-center gap-2">✓ Basic Support</li>
                         </ul>
                         <button 
+                            onClick={() => currentSubscription && handleDowngrade()}
+                            disabled={isLoading || !currentSubscription}
                             className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
                                 !currentSubscription 
                                     ? 'bg-gray-900 text-white cursor-default' 
                                     : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-50'
                             }`}
                         >
-                            {!currentSubscription ? 'Current Plan' : 'Downgrade'}
+                            {submitting && currentSubscription ? 'Processing...' : (!currentSubscription ? 'Current Plan' : 'Downgrade')}
                         </button>
                     </div>
 
