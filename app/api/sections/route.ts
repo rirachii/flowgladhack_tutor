@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/api/auth'
 import { apiSuccess, apiError, apiPaginated } from '@/lib/api/response'
 
 // GET /api/sections - List sections (public, for published modules only)
@@ -39,12 +38,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/sections - Create section (auth required)
+// POST /api/sections - Create section
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const supabase = await createSupabaseServerClient()
     const body = await request.json()
 

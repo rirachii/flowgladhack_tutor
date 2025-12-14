@@ -1,16 +1,12 @@
 import { NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/api/auth'
 import { apiSuccess, apiError } from '@/lib/api/response'
 
 type RouteParams = { params: Promise<{ id: string }> }
 
-// GET /api/progress/[id] - Get single progress record (auth required, own only)
+// GET /api/progress/[id] - Get single progress record
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const { id } = await params
     const supabase = await createSupabaseServerClient()
 
@@ -18,7 +14,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .from('user_module_progress')
       .select('*, module:modules(id, title, topic, difficulty, thumbnail_url)')
       .eq('id', id)
-      .eq('user_id', auth.user.id)
       .single()
 
     if (error || !data) {
@@ -31,22 +26,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PATCH /api/progress/[id] - Update progress (auth required, own only)
+// PATCH /api/progress/[id] - Update progress
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const { id } = await params
     const supabase = await createSupabaseServerClient()
     const body = await request.json()
 
-    // First verify ownership
+    // Verify record exists
     const { data: existing } = await supabase
       .from('user_module_progress')
       .select('id')
       .eq('id', id)
-      .eq('user_id', auth.user.id)
       .single()
 
     if (!existing) {

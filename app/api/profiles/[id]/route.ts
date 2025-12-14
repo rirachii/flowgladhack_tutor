@@ -1,23 +1,13 @@
 import { NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/api/auth'
 import { apiSuccess, apiError } from '@/lib/api/response'
 
 type RouteParams = { params: Promise<{ id: string }> }
 
-// GET /api/profiles/[id] - Get profile by ID (auth required, own only)
+// GET /api/profiles/[id] - Get profile by ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const { id } = await params
-
-    // Users can only view their own profile
-    if (id !== auth.user.id) {
-      return apiError('Forbidden', 403, 'You can only access your own profile')
-    }
-
     const supabase = await createSupabaseServerClient()
 
     const { data, error } = await supabase
@@ -36,19 +26,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PATCH /api/profiles/[id] - Update profile (auth required, own only)
+// PATCH /api/profiles/[id] - Update profile
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const { id } = await params
-
-    // Users can only update their own profile
-    if (id !== auth.user.id) {
-      return apiError('Forbidden', 403, 'You can only update your own profile')
-    }
-
     const supabase = await createSupabaseServerClient()
     const body = await request.json()
 
