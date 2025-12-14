@@ -6,28 +6,28 @@ import { generateModule } from '@/lib/services/moduleGeneration'
 // GET /api/modules - List published modules (public)
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { searchParams } = new URL(request.url)
+    const supabase = await createSupabaseServerClient();
+    const { searchParams } = new URL(request.url);
 
-    const topic = searchParams.get('topic')
-    const difficulty = searchParams.get('difficulty')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const topic = searchParams.get("topic");
+    const difficulty = searchParams.get("difficulty");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     let query = supabase
-      .from('modules')
-      .select('*', { count: 'exact' })
-      .eq('is_published', true)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .from("modules")
+      .select("*", { count: "exact" })
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    if (topic) query = query.eq('topic', topic)
-    if (difficulty) query = query.eq('difficulty', difficulty)
+    if (topic) query = query.eq("topic", topic);
+    if (difficulty) query = query.eq("difficulty", difficulty);
 
-    const { data, error, count } = await query
+    const { data, error, count } = await query;
 
     if (error) {
-      return apiError('Failed to fetch modules', 500, error.message)
+      return apiError("Failed to fetch modules", 500, error.message);
     }
 
     return apiPaginated(data ?? [], {
@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
       limit,
       offset,
       hasMore: (count ?? 0) > offset + limit,
-    })
+    });
   } catch {
-    return apiError('Internal server error', 500)
+    return apiError("Internal server error", 500);
   }
 }
 
@@ -68,6 +68,6 @@ export async function POST(request: NextRequest) {
       quizzes: result.quizzes,
     }, 201)
   } catch {
-    return apiError('Internal server error', 500)
+    return apiError("Internal server error", 500);
   }
 }
