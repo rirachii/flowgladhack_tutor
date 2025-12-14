@@ -1,14 +1,10 @@
 import { NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/api/auth'
 import { apiSuccess, apiError, apiPaginated } from '@/lib/api/response'
 
-// GET /api/quiz-results - Get own quiz results (auth required)
+// GET /api/quiz-results - Get all quiz results
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const supabase = await createSupabaseServerClient()
     const { searchParams } = new URL(request.url)
 
@@ -19,7 +15,6 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('quiz_results')
       .select('*, quiz:quizzes(id, title, section_id)', { count: 'exact' })
-      .eq('user_id', auth.user.id)
       .order('completed_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -42,12 +37,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/quiz-results - Submit quiz result (auth required)
+// POST /api/quiz-results - Submit quiz result
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const supabase = await createSupabaseServerClient()
     const body = await request.json()
 
@@ -68,7 +60,6 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('quiz_results')
       .insert({
-        user_id: auth.user.id,
         quiz_id,
         score,
         answers,

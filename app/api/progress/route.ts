@@ -1,14 +1,10 @@
 import { NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/api/auth'
 import { apiSuccess, apiError, apiPaginated } from '@/lib/api/response'
 
-// GET /api/progress - Get own module progress (auth required)
+// GET /api/progress - Get all module progress
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const supabase = await createSupabaseServerClient()
     const { searchParams } = new URL(request.url)
 
@@ -20,7 +16,6 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('user_module_progress')
       .select('*, module:modules(id, title, topic, difficulty, thumbnail_url)', { count: 'exact' })
-      .eq('user_id', auth.user.id)
       .order('started_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -44,12 +39,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/progress - Start a module (auth required)
+// POST /api/progress - Start a module
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const supabase = await createSupabaseServerClient()
     const body = await request.json()
 
@@ -59,11 +51,10 @@ export async function POST(request: NextRequest) {
       return apiError('Missing required field: module_id', 400)
     }
 
-    // Check if progress already exists
+    // Check if progress already exists for this module
     const { data: existing } = await supabase
       .from('user_module_progress')
       .select('id')
-      .eq('user_id', auth.user.id)
       .eq('module_id', module_id)
       .single()
 
@@ -74,7 +65,6 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('user_module_progress')
       .insert({
-        user_id: auth.user.id,
         module_id,
         status: 'in_progress',
         current_section_index: 0,
