@@ -1,11 +1,34 @@
 'use client';
 
+import { useState } from 'react';
 import { useBilling } from '@flowglad/nextjs';
 import TokenUsageDemo from '@/components/TokenUsageDemo';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-    const { currentSubscription, loaded, checkUsageBalance } = useBilling();
+    const { currentSubscription, loaded, checkUsageBalance, createCheckoutSession } = useBilling();
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleTopUp = async () => {
+        if (!createCheckoutSession) return;
+        setSubmitting(true);
+        try {
+            const res = await createCheckoutSession({
+                priceSlug: 'speech_token',
+                successUrl: window.location.origin + '/dashboard',
+                cancelUrl: window.location.origin + '/dashboard',
+                autoRedirect: true
+            });
+            if ('error' in res) {
+                alert('Checkout failed: ' + JSON.stringify(res.error));
+            }
+        } catch (e) {
+            console.error('Checkout error:', e);
+            alert('Error starting checkout');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -55,19 +78,20 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                     <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Actions</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Top Up</p>
                                         <div className="mt-2 space-y-2">
-                                            <Link 
-                                                href="/pricing" 
-                                                className="block text-center w-full px-4 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-50 transition"
+                                            <button 
+                                                onClick={handleTopUp}
+                                                disabled={submitting}
+                                                className="block text-center w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
                                             >
-                                                Top Up Credits
-                                            </Link>
+                                                {submitting ? 'Processing...' : 'Add $5 Credit (10k)'}
+                                            </button>
                                             <Link 
                                                 href="/pricing" 
                                                 className="block text-center w-full px-4 py-2 border border-gray-300 dark:border-gray-500 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
                                             >
-                                                Manage Plan
+                                                Change Plan
                                             </Link>
                                         </div>
                                     </div>

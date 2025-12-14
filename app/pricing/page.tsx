@@ -3,7 +3,7 @@ import { useBilling } from '@flowglad/nextjs';
 import { useState } from 'react';
 
 export default function PricingPage() {
-    const { createCheckoutSession, loaded } = useBilling();
+    const { createCheckoutSession, currentSubscription, loaded } = useBilling();
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubscribe = async (priceSlug: string) => {
@@ -37,7 +37,7 @@ export default function PricingPage() {
                     <p className="text-xl text-gray-600">Choose the plan that's right for you</p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     {/* Free Plan */}
                     <div className="p-8 bg-gray-50 rounded-2xl border border-gray-200 flex flex-col">
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
@@ -46,8 +46,14 @@ export default function PricingPage() {
                             <li className="flex items-center gap-2">✓ 100k AI Tokens / month</li>
                             <li className="flex items-center gap-2">✓ Basic Support</li>
                         </ul>
-                        <button className="w-full py-3 px-6 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-800 transition">
-                            Current Plan
+                        <button 
+                            className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
+                                !currentSubscription 
+                                    ? 'bg-gray-900 text-white cursor-default' 
+                                    : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-50'
+                            }`}
+                        >
+                            {!currentSubscription ? 'Current Plan' : 'Downgrade'}
                         </button>
                     </div>
 
@@ -62,29 +68,15 @@ export default function PricingPage() {
                             <li className="flex items-center gap-2">✓ Advanced Analytics</li>
                         </ul>
                         <button 
-                            onClick={() => handleSubscribe('starter_monthly')}
-                            disabled={isLoading}
-                            className="w-full py-3 px-6 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl disabled:opacity-50"
+                            onClick={() => !currentSubscription && handleSubscribe('starter_monthly')}
+                            disabled={isLoading || !!currentSubscription}
+                            className={`w-full py-3 px-6 rounded-lg font-semibold transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:shadow-none ${
+                                !!currentSubscription
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
                         >
-                            {isLoading ? 'Processing...' : 'Subscribe Now'}
-                        </button>
-                    </div>
-
-                    {/* Credit Top Up */}
-                    <div className="p-8 bg-purple-50 rounded-2xl border border-purple-100 flex flex-col">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Credit Top Up</h3>
-                        <div className="text-4xl font-bold text-gray-900 mb-6">$5<span className="text-lg text-gray-600 font-normal"> one-time</span></div>
-                        <ul className="space-y-4 mb-8 text-gray-600 flex-1">
-                            <li className="flex items-center gap-2">✓ Add 10,000 Extra Tokens</li>
-                            <li className="flex items-center gap-2">✓ Never Expires</li>
-                            <li className="flex items-center gap-2">✓ Use Anytime</li>
-                        </ul>
-                        <button 
-                            onClick={() => handleSubscribe('prod_xifyHsc6yi530scT0A0nb')}
-                            disabled={isLoading}
-                            className="w-full py-3 px-6 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition shadow-lg hover:shadow-xl disabled:opacity-50"
-                        >
-                            {isLoading ? 'Processing...' : 'Buy Credits'}
+                            {isLoading ? 'Processing...' : (currentSubscription ? 'Current Plan' : 'Subscribe Now')}
                         </button>
                     </div>
                 </div>
