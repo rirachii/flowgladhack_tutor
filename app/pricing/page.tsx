@@ -1,6 +1,9 @@
 'use client';
 import { useBilling } from '@flowglad/nextjs';
 import { useState } from 'react';
+import Link from 'next/link';
+
+import { cancelSubscriptionAction } from './actions';
 
 export default function PricingPage() {
     const { createCheckoutSession, currentSubscription, loaded } = useBilling();
@@ -27,14 +30,38 @@ export default function PricingPage() {
         }
     };
 
+    const handleDowngrade = async () => {
+        if (!currentSubscription || !confirm('Are you sure you want to cancel your Pro subscription? You will lose access to premium features at the end of your billing cycle.')) return;
+        
+        setSubmitting(true);
+        try {
+            const result = await cancelSubscriptionAction(currentSubscription.id);
+            if (result.error) {
+                alert(result.error);
+            } else {
+                window.location.reload(); // Refresh to reflect status change
+            }
+        } catch (e) {
+            console.error('Downgrade error:', e);
+            alert('Failed to process downgrade');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const isLoading = !loaded || submitting;
 
     return (
         <div className="min-h-screen bg-white">
             <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <div className="mb-8">
+                    <Link href="/dashboard" className="text-sm font-semibold text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                        <span>←</span> Continue to Dashboard
+                    </Link>
+                </div>
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h1>
-                    <p className="text-xl text-gray-600">Choose the plan that's right for you</p>
+                    <p className="text-xl text-gray-600">Choose the plan thats right for you</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -47,13 +74,15 @@ export default function PricingPage() {
                             <li className="flex items-center gap-2">✓ Basic Support</li>
                         </ul>
                         <button 
+                            onClick={() => currentSubscription && handleDowngrade()}
+                            disabled={isLoading || !currentSubscription}
                             className={`w-full py-3 px-6 rounded-lg font-semibold transition ${
                                 !currentSubscription 
                                     ? 'bg-gray-900 text-white cursor-default' 
                                     : 'bg-white text-gray-900 border border-gray-200 hover:bg-gray-50'
                             }`}
                         >
-                            {!currentSubscription ? 'Current Plan' : 'Downgrade'}
+                            {submitting && currentSubscription ? 'Processing...' : (!currentSubscription ? 'Current Plan' : 'Downgrade')}
                         </button>
                     </div>
 
@@ -76,7 +105,15 @@ export default function PricingPage() {
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
                         >
-                            {isLoading ? 'Processing...' : (currentSubscription ? 'Current Plan' : 'Subscribe Now')}
+                            {isLoading ? 'Processing...' : (
+                                currentSubscription ? (
+                                    currentSubscription.status === 'cancellation_scheduled' 
+                                        ? ((currentSubscription as any).currentPeriodEnd 
+                                            ? `Cancels on ${new Date((currentSubscription as any).currentPeriodEnd).toLocaleDateString()}`
+                                            : 'Cancellation Pending')
+                                        : 'Current Plan'
+                                ) : 'Subscribe Now'
+                            )}
                         </button>
                     </div>
                 </div>
