@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/api/auth'
 import { apiSuccess, apiError, apiPaginated } from '@/lib/api/response'
 import { generateModule } from '@/lib/services/moduleGeneration'
 
@@ -42,12 +41,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/modules - Generate module from title (auth required)
+// POST /api/modules - Generate module from title
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAuth()
-    if (auth.error) return auth.error
-
     const supabase = await createSupabaseServerClient()
     const body = await request.json()
 
